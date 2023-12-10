@@ -5,7 +5,7 @@ import { Box, InputLabel, Stack } from '@mui/material';
 import axios from 'axios';
 
 export default function Registration(props) {
-    const {onCancel} = props;
+    const { onCancel } = props;
 
     const [login, setLogin] = React.useState("");
     const [email, setEmail] = React.useState("");
@@ -34,28 +34,35 @@ export default function Registration(props) {
     }
 
     return (
-        <Stack>
-            <Stack direction={"row"}>
-                <Box>
-                    <Stack spacing={4}>
-                        <InputLabel>Логин:</InputLabel>
-                        <InputLabel>Почта:</InputLabel>
-                        <InputLabel>Пароль:</InputLabel>
-                        <InputLabel>Повторить пароль:</InputLabel>
+        <Stack style={{marginTop: "16%"}}>
+            <Box alignSelf={"center"}>
+                <Stack spacing={1}>
+                    <Stack direction={"row"}>
+                        <InputLabel style={{ width: "160px" }}>Логин:</InputLabel>
+                        <TextField size="small" onChange={e => setLogin(e.target.value)} />
                     </Stack>
-                </Box>
-                <Box>
-                    <Stack>
-                        <TextField onChange={e => setLogin(e.target.value)} />
-                        <TextField onChange={e => setEmail(e.target.value)} type='email' />
-                        <TextField onChange={e => setPassword(e.target.value)} type='password' />
-                        <TextField onChange={e => setRepeatPassword(e.target.value)} type='password' />
+                    <Stack direction={"row"}>
+                        <InputLabel style={{ width: "160px" }}>Почта:</InputLabel>
+                        <TextField size="small" onChange={e => setEmail(e.target.value)} type='email' />
                     </Stack>
-                </Box>
-            </Stack>
-            <Box>
-                <Button onClick={onBtnSendClick}>Отправить</Button>
-                <Button href="/" onClick={onBtnCancelClick}>Отмена</Button>
+                    <Stack direction={"row"}>
+                        <InputLabel style={{ width: "160px" }}>Пароль:</InputLabel>
+                        <TextField size="small" onChange={e => setPassword(e.target.value)} type='password' />
+                    </Stack>
+                    <Stack direction={"row"}>
+                        <InputLabel style={{ width: "160px" }}>Повторить пароль:</InputLabel>
+                        <TextField size="small" onChange={e => setRepeatPassword(e.target.value)} type='password' />
+                    </Stack>
+                </Stack>
+            </Box>
+            <Box alignSelf={"center"} marginTop={"25px"}>
+                <Button 
+                    variant="contained" 
+                    onClick={onBtnSendClick}>Отправить</Button>
+                <Button 
+                    href="/" 
+                    style={{marginLeft: "25px"}}
+                    onClick={onBtnCancelClick}>Отмена</Button>
             </Box>
         </Stack>
     );

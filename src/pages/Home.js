@@ -580,7 +580,7 @@ function Home(props) {
                                     <td><input type="checkbox" onChange={onCheckboxChange} /></td>
                                     <td>{file.name}</td>
                                     <td>{file.typeTitle}</td>
-                                    <td>{formatSize(file.size)}</td>
+                                    <td>{file.type == "DIRECTORY" ? "" : formatSize(file.size)}</td>
                                     <td>{format(new Date(file.dateCreated), "dd.MM.yyyy")}</td>
                                 </tr>
                             ))

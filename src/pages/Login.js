@@ -41,21 +41,26 @@ export default function Login() {
     }
 
     return (
-        <Stack>
-            <Stack direction={"row"}>
-                <Box width={120}><InputLabel>Логин:</InputLabel></Box>
-                <Box><TextField onChange={e => setLogin(e.target.value)} /></Box>
+            <Stack style={{marginTop: "21%"}}>
+                <Box alignSelf={"center"}>
+                    <Stack direction={"row"} style={{marginBottom: "12px"}}>
+                        <Box width={100}><InputLabel>Логин:</InputLabel></Box>
+                        <Box><TextField size="small" onChange={e => setLogin(e.target.value)} /></Box>
+                    </Stack>
+                    <Stack direction={"row"}>
+                        <Box width={100}><InputLabel>Пароль:</InputLabel></Box>
+                        <Box><TextField size="small" onChange={e => setPassword(e.target.value)} type='password' /></Box>
+                    </Stack>
+                </Box>
+                <Box alignSelf={"center"} marginTop={"18px"}>
+                    <Stack>
+                        <Button 
+                            style={{marginBottom: "12px"}}
+                            variant="contained" 
+                            onClick={onBtnLoginClick}>Войти</Button>
+                        <Link href="/register">Зарегистрироваться</Link>
+                    </Stack>
+                </Box>
             </Stack>
-            <Stack direction={"row"}>
-                <Box width={120}><InputLabel>Пароль:</InputLabel></Box>
-                <Box><TextField onChange={e => setPassword(e.target.value)} type='password' /></Box>
-            </Stack>
-            <Box alignSelf={"center"}>
-                <Stack>
-                    <Button onClick={onBtnLoginClick}>Войти</Button>
-                    <Link href="/register">Зарегистрироваться</Link>
-                </Stack>
-            </Box>
-        </Stack>
     );
 };
