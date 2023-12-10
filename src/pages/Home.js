@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from "react";
 import axios from "axios";
 import '../../node_modules/bootstrap/dist/css/bootstrap.min.css'
-import { Breadcrumbs } from "@mui/material";
+import { Breadcrumbs, Stack } from "@mui/material";
 import Link from "@mui/material/Link";
 import { TreeView } from "@mui/x-tree-view/TreeView";
 import { TreeItem } from "@mui/x-tree-view";
@@ -14,6 +14,8 @@ import CreateDirDialog from "./CreateDirDialog";
 import StorageToolbar from "./components/StorageToolbar";
 import TrashbinToolbar from "./components/TrashbinToolbar";
 import { format } from 'date-fns';
+import Button from "@mui/material/Button";
+import Box from "@mui/material/Box";
 
 function Home(props) {
     const {userId} = props;
@@ -515,20 +517,30 @@ function Home(props) {
     }
 
     return (
-        <div style={{display: 'flex', flexDirection: 'row'}}>
-            <nav>
-                <h1>Хранилище</h1>
+        <div style={{
+                display: 'flex', 
+                flexDirection: 'row', 
+                height: "94%", 
+                marginTop: "27px",
+                marginBottom: "27px"}}>
+            <nav style={{width: "34%", borderRight: "solid 2px #dedede"}}>
+                <h1 style={{textAlign: "center", padding: "30px 20px"}}>Хранилище</h1>
 
-                <TreeView
-                    defaultCollapseIcon={<ExpandMoreIcon />}
-                    defaultExpandIcon={<ChevronRightIcon />}
-                >
-                    {renderTreeItems(getNodesFromFiles(treeViewFiles))}
-                </TreeView>
+                <Stack style={{height: "100%"}}>
+                    <TreeView
+                        defaultCollapseIcon={<ExpandMoreIcon />}
+                        defaultExpandIcon={<ChevronRightIcon />}
+                        style={{ padding: "20px", overflow: "scroll", height: "80%" }}>
+                        {renderTreeItems(getNodesFromFiles(treeViewFiles))}
+                    </TreeView>
 
-                <button className="btn" onClick={onTrashbinButtonClick}>Корзина</button>
+                    <Box alignSelf={"center"}>
+                        <Button onClick={onTrashbinButtonClick}>Корзина</Button>
+                    </Box>
+                </Stack>
+
             </nav>
-            <div>
+            <div style={{marginLeft: "37px"}}>
                 <h1 style={{
                     display: isInTrashbin ? "block" : "none",
                     marginBottom: "30px",
