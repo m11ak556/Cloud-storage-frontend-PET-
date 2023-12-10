@@ -13,6 +13,7 @@ import ContextMenu from "./components/ContextMenu";
 import CreateDirDialog from "./CreateDirDialog";
 import StorageToolbar from "./components/StorageToolbar";
 import TrashbinToolbar from "./components/TrashbinToolbar";
+import { format } from 'date-fns';
 
 function Home(props) {
     const {userId} = props;
@@ -351,6 +352,25 @@ function Home(props) {
         loadFilesFromTrashbin();
     }
 
+    // Приводит размер файла к Б. Кб. Мб, Гб.
+    const formatSize = (size) => {
+        let hops = 0;
+        while (size > 1024) {
+            size /= 1024;
+            hops++;
+        }
+
+        size = Math.round(size);
+
+        switch (hops) {
+            case 0: return size + " Б";
+            case 1: return size + " Кб";
+            case 2: return size + " Mб";
+            case 3: return size + " Гб";
+            default: return "";
+        }
+    }
+
     // Изменение стиля выбранной строки
     const selectRow = (row) => {
         // При первом нажатии строка считается выбранной
@@ -555,13 +575,13 @@ function Home(props) {
                                 <tr onClick={onRowClick} 
                                     onDoubleClick={onRowDoubleClick}
                                     onContextMenu={onContextMenu}
-                                    style={{ cursor: 'context-menu' }}>
+                                    style={{ cursor: "context menu" }}>
                                     <td id="files-table-indexer" style={{ display: 'none' }} key={index}>{index + 1}</td>
                                     <td><input type="checkbox" onChange={onCheckboxChange} /></td>
                                     <td>{file.name}</td>
                                     <td>{file.typeTitle}</td>
-                                    <td>{file.size}</td>
-                                    <td>{file.dateCreated}</td>
+                                    <td>{formatSize(file.size)}</td>
+                                    <td>{format(new Date(file.dateCreated), "dd.MM.yyyy")}</td>
                                 </tr>
                             ))
                         }
