@@ -20,6 +20,7 @@ function Home() {
 
     const uploadFilesEndpoint = "http://localhost:8080/files/uploadMultiple?"
     const getFilesListEndpoint = "http://localhost:8080/files/get?"
+    const getAllFilesListEndpoint = "http://localhost:8080/files/getAll?"
     const getByUserIdEndpoint = "http://localhost:8080/files/getByUserId?"
     const fileDownloadEndpoint = "http://localhost:8080/files/downloadMultiple?";
     const putToTrashbinEndpoint = "http://localhost:8080/trashbin/put?";
@@ -51,84 +52,85 @@ function Home() {
             openFolder(null, currentDirectory);
     }
 
-    const generateTreeItems = () => {
-        const treeItemsMapping = [];
-        let newTreeItemIndex = 0;
-
-        // Ведем список директорий
-        const filesMapping = [];
-
-        treeViewFiles.map((file, index) => {
-            if (file.type == "DIRECTORY") {
-                treeItemsMapping.push(
-                    {   mappedItem:
-                            <TreeItem key={index} nodeId={index} label={file.name}>
-                                <TreeItem display="none"/>
-                            </TreeItem>,
-                        children: []
+    const renderTreeItems = (nodes) => {
+        if (Array.isArray(nodes)) {
+            return nodes.map((node) =>
+                <TreeItem key={node.id} nodeId={node.id} label={node.name}>
+                    {Array.isArray(node.children)
+                        ? node.children.map((n) => renderTreeItems(n))
+                        : null
                     }
-                )
-            }
-            else {
-                treeItemsMapping.push(
-                    {   mappedItem:
-                            <TreeItem key={index} nodeId={index} label={file.name}/>,
-                        children: []
-                    }
-                )
-            }
-            // Если файл лежит в папке
-            if (file.path != "") {
-                let treeItemIndex;
-                let parentTreeItem;
-                let mappedFile;
-                let mappedFileFullPath = "";
-
-                // Ищем ее родительскую папку в списке
-                for (let index = 0; index < filesMapping.length; index++) {
-                    // Например, file.name = Pictures
-                    //           file.path = Documents/MyDocs
-                    //           filesMapping[index].name = MyDocs
-                    //           filesMapping[index].path = Documents
-                    mappedFile = filesMapping[index].mappedFile;
-                    mappedFileFullPath = getFullFilePath(mappedFile); // Например: Documents/MyDocs
-
-                    // Если родительская папка найдена
-                    if (mappedFileFullPath == file.path) {
-                        // Добавляем к ней индекс данного TreeItem
-                        treeItemIndex = filesMapping[index].mappedNodeIdx;
-                        parentTreeItem = treeItemsMapping[treeItemIndex];
-                        parentTreeItem.children.push(newTreeItemIndex);
-                    }
-                }
-            }
-
-            filesMapping.push({ mappedFile: file, mappedNodeIdx: newTreeItemIndex });
-            newTreeItemIndex++;
-        });
-
-        return assembleTreeItems(treeItemsMapping);
+                </TreeItem>
+            );
+        }
+        else {
+            return <TreeItem key={nodes.id} nodeId={nodes.id} label={nodes.name}>
+                        {Array.isArray(nodes.children)
+                            ? nodes.children.map((n) => renderTreeItems(n))
+                            : null
+                        }
+                    </TreeItem>
+        }
     }
 
-    const assembleTreeItems = (treeItemsMapping) => {
-        const assembledTreeItems = [];
-        let itemToAppend;
-        let appendIndex;
-        for (let index = 0; index < treeItemsMapping.length; index++) {
-            const treeItem = treeItemsMapping[index];
+    const getNodesFromFiles = (filesList) => {
+        const treeOfFiles = [];
+        const directoriesMapping = [];
+
+        filesList.sort((f1, f2) => f1.path > f2.path);
+
+        // Нужно как-то учитывать уровень в иерархии
+
+        // Перебираем файлы
+        let file;
+        let dirIndex = 0;
+        let newNode;
+        for (let index = 0; index < filesList.length; index++) {
+            file = filesList[index];
             
-            if (treeItem.children.length > 0) {
-                for (let j = 0; j < treeItem.children.length; j++) {
-                    appendIndex = treeItem.children[j];
-                    itemToAppend = treeItemsMapping[appendIndex].mappedItem;
-                    treeItem.mappedItem.children = <h1>IM A FIRIng man LazeR</h1>
+
+            // Проверяем вложенность
+            // Если файл находится в рабочей директории
+            if (file.path == "") {
+                newNode = {id: index, name: file.name, children: []};
+                treeOfFiles.push(newNode);
+
+                // Если файл является папкой...
+                if (file.type == "DIRECTORY") {
+                    //...добавляем в список папок
+                    directoriesMapping.push({ mappedNode: newNode, mappedFile: file });
+                    dirIndex++;
+                }   
+            }
+            // Если файл лежит в какой-либо папке
+            else {
+                let dir;
+                let mapNode;
+                let dirFullPath;
+                // Перебираем список папок
+                for (let j = 0; j < directoriesMapping.length; j++) {
+                    dir = directoriesMapping[j].mappedFile;
+                    mapNode = directoriesMapping[j].mappedNode;
+                    dirFullPath = getFullFilePath(dir);
+
+                    // Если данная папка является папкой текущего файла...
+                    if (file.path == dirFullPath) {
+                        // ...добавляем его как дочерний объект для папки
+                        newNode = {id: index, name: file.name, children: []};
+                        mapNode.children.push(newNode);
+
+                        // Если файл является папкой...
+                        if (file.type == "DIRECTORY") {
+                            //...добавляем в список папок
+                            directoriesMapping.push({ mappedNode: newNode, mappedFile: file });
+                            dirIndex++;
+                        }   
+                    }
                 }
             }
-
-            assembledTreeItems.push(treeItem.mappedItem);
         }
 
-        return assembledTreeItems;
+        return treeOfFiles;
     }
 
     const loadFiles = async () => {
@@ -138,7 +140,7 @@ function Home() {
     }
 
     const loadTreeViewFiles = async () => {
-        const result = await axios.get(getByUserIdEndpoint + "userId=" + userId);
+        const result = await axios.get(getAllFilesListEndpoint + "userId=" + userId);
         setTreeViewFiles(result.data);
     }
 
@@ -347,13 +349,13 @@ function Home() {
 
         const newTreeViewFiles = [...treeViewFiles];
 
-        loadFilesFromFolder(path, (filesToAppend) => {
-            filesToAppend.forEach(f => {
-                newTreeViewFiles.push(f);
-            });
+        // loadFilesFromFolder(path, (filesToAppend) => {
+        //     filesToAppend.forEach(f => {
+        //         newTreeViewFiles.push(f);
+        //     });
 
-            setTreeViewFiles(newTreeViewFiles);
-        });
+        //     setTreeViewFiles(newTreeViewFiles);
+        // });
     }
 
     return (
@@ -367,7 +369,7 @@ function Home() {
                     defaultExpandIcon={<ChevronRightIcon />}
                     onNodeSelect={onTreeItemExpand}
                 >
-                    {generateTreeItems()}
+                    {renderTreeItems(getNodesFromFiles(treeViewFiles))}
                 </TreeView>
 
                 <button className="btn" onClick={onTrashbinButtonClick}>Корзина</button>
