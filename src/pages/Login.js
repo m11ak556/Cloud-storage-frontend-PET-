@@ -19,12 +19,16 @@ export default function Login() {
             + "login=" + login
             + "&password=" + password);
 
+        // Создание новой страницы для перехода.
+        // Ей мы передаем id пользователя, чтобы она смогла
+        // загрузить его файлы
         const router = createBrowserRouter([
         {
             path: "/",
             element: <Home userId = {result.data}/>
         }]);
         
+        // Переход на созданную страницу
         ReactDOM.createRoot(document.getElementById("root")).render(
         <React.StrictMode>
             <RouterProvider router={router} />
