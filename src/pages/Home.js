@@ -7,6 +7,8 @@ import { TreeView } from "@mui/x-tree-view/TreeView";
 import { TreeItem } from "@mui/x-tree-view";
 import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
 import ChevronRightIcon from '@mui/icons-material/ChevronRight';
+import MoveToDirDialog from "./components/MoveToDirDialog";
+import SelectFolderDialog from "./components/SelectFolderDialog";
 
 function Home() {
     const [files, setFiles] = useState([]);
@@ -14,6 +16,8 @@ function Home() {
     const [breadcrumbs, setBreadcrumbs] = useState([]);
     const [selectedRow, setSelectedRow] = useState(null);
     const [currentDirectory, setCurrentDirectory] = useState("");
+    const [moveToDirDialogOpen, setMoveToDirDialogOpen] = useState(false);
+    const [selectFolderDialogOpen, setSelectFolderDialogOpen] = useState(false);
 
     const userId = 1;
     const workingDir = "Trisha";
@@ -24,7 +28,7 @@ function Home() {
     const getByUserIdEndpoint = "http://localhost:8080/files/getByUserId?"
     const fileDownloadEndpoint = "http://localhost:8080/files/downloadMultiple?";
     const putToTrashbinEndpoint = "http://localhost:8080/trashbin/put?";
-    const moveFileEndpoint = "http://";
+    const moveFileEndpoint = "http://localhost:8080/files/move?";
     const goToTrashbin = "http://"
 
     useEffect(() => {
@@ -52,22 +56,26 @@ function Home() {
             openFolder(null, currentDirectory);
     }
 
-    const renderTreeItems = (nodes) => {
+    const renderTreeItems = (nodes, onlyDirectories = false) => {
         if (Array.isArray(nodes)) {
             return nodes.map((node) =>
-                <TreeItem key={node.id} nodeId={node.id} label={node.name}>
-                    {Array.isArray(node.children)
-                        ? node.children.map((n) => renderTreeItems(n))
-                        : null
+                <TreeItem key={node.id} nodeId={node.id} label={node.name}
+                    disabled={onlyDirectories && !node.isDirectory}>
+                    {
+                        Array.isArray(node.children)
+                            ? node.children.map((n) => renderTreeItems(n, onlyDirectories))
+                            : null
                     }
                 </TreeItem>
             );
         }
         else {
-            return <TreeItem key={nodes.id} nodeId={nodes.id} label={nodes.name}>
-                        {Array.isArray(nodes.children)
-                            ? nodes.children.map((n) => renderTreeItems(n))
-                            : null
+            return <TreeItem key={nodes.id} nodeId={nodes.id} label={nodes.name}
+                        disabled={onlyDirectories && !nodes.isDirectory}>
+                        {
+                            Array.isArray(nodes.children)
+                                ? nodes.children.map((n) => renderTreeItems(n, onlyDirectories))
+                                : null
                         }
                     </TreeItem>
         }
@@ -92,12 +100,13 @@ function Home() {
             // Проверяем вложенность
             // Если файл находится в рабочей директории
             if (file.path == "") {
-                newNode = {id: index, name: file.name, children: []};
+                newNode = {id: index, name: file.name, isDirectory: false, children: []};
                 treeOfFiles.push(newNode);
 
                 // Если файл является папкой...
                 if (file.type == "DIRECTORY") {
                     //...добавляем в список папок
+                    newNode.isDirectory = true;
                     directoriesMapping.push({ mappedNode: newNode, mappedFile: file });
                     dirIndex++;
                 }   
@@ -116,12 +125,13 @@ function Home() {
                     // Если данная папка является папкой текущего файла...
                     if (file.path == dirFullPath) {
                         // ...добавляем его как дочерний объект для папки
-                        newNode = {id: index, name: file.name, children: []};
+                        newNode = {id: index, name: file.name, isDirectory: false, children: []};
                         mapNode.children.push(newNode);
 
                         // Если файл является папкой...
                         if (file.type == "DIRECTORY") {
                             //...добавляем в список папок
+                            newNode.isDirectory = true;
                             directoriesMapping.push({ mappedNode: newNode, mappedFile: file });
                             dirIndex++;
                         }   
@@ -228,8 +238,17 @@ function Home() {
         link.remove();
     }
 
-    const moveSelectedFiles = () => {
-        alert("NOT IMPLEMENTED YET!!!");
+    const moveSelectedFiles = async (selectedPath) => {
+        const rowIndex = getRowIndex(selectedRow);
+        const file = files[rowIndex];
+
+        await axios.put(moveFileEndpoint 
+            + "userId=" + userId
+            + "&destination=" + selectedPath
+            + "&fileIds=" + file.id);
+
+        alert("Файлы успешно перемещены");
+        updateTable();
     }
 
     const deleteSelectedFiles = async () => {
@@ -327,7 +346,12 @@ function Home() {
     }
 
     const onMoveFileButtonClick = (e) => {
-        moveSelectedFiles();
+        if (selectedRow == null)
+        {
+            alert("Выберите файл, который хотите переместить");
+            return;
+        }
+        setMoveToDirDialogOpen(true);
     }
 
     const onDeleteFileButtonClick = (e) => {
@@ -336,26 +360,6 @@ function Home() {
 
     const onTrashbinButtonClick = (e) => {
         deleteSelectedFiles();
-    }
-
-    const onTreeItemExpand = (e, index) => {
-        
-        const file = treeViewFiles[index];
-        if (file.type != "DIRECTORY")
-            return;
-
-        
-        const path = getFullFilePath(file);
-
-        const newTreeViewFiles = [...treeViewFiles];
-
-        // loadFilesFromFolder(path, (filesToAppend) => {
-        //     filesToAppend.forEach(f => {
-        //         newTreeViewFiles.push(f);
-        //     });
-
-        //     setTreeViewFiles(newTreeViewFiles);
-        // });
     }
 
     return (
@@ -367,7 +371,6 @@ function Home() {
                     aria-label="file system navigator"
                     defaultCollapseIcon={<ExpandMoreIcon />}
                     defaultExpandIcon={<ChevronRightIcon />}
-                    onNodeSelect={onTreeItemExpand}
                 >
                     {renderTreeItems(getNodesFromFiles(treeViewFiles))}
                 </TreeView>
@@ -411,6 +414,15 @@ function Home() {
                     </tbody>
                 </table>
             </div>
+            <MoveToDirDialog 
+                open={moveToDirDialogOpen} 
+                treeItems={renderTreeItems(getNodesFromFiles(treeViewFiles), true)}
+                mappedItems={treeViewFiles}
+                onOk={(selectedPath) => {
+                    moveSelectedFiles(selectedPath);
+                    setMoveToDirDialogOpen(false);
+                }}
+                onClose={() => {setMoveToDirDialogOpen(false)}}/>
         </div>
     );
 }
