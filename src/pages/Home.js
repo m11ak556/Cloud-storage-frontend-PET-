@@ -9,6 +9,8 @@ import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
 import ChevronRightIcon from '@mui/icons-material/ChevronRight';
 import MoveToDirDialog from "./components/MoveToDirDialog";
 import SelectFolderDialog from "./components/SelectFolderDialog";
+import ContextMenu from "./components/ContextMenu";
+import CreateDirDialog from "./CreateDirDialog";
 
 function Home(props) {
     const {userId} = props;
@@ -19,7 +21,9 @@ function Home(props) {
     const [selectedRow, setSelectedRow] = useState(null);
     const [currentDirectory, setCurrentDirectory] = useState("");
     const [moveToDirDialogOpen, setMoveToDirDialogOpen] = useState(false);
-    const [selectFolderDialogOpen, setSelectFolderDialogOpen] = useState(false);
+    const [createDirDialogOpen, setCreateDirDialogOpen] = useState(false);
+    const [contextMenu, setContextMenu] = useState(null);
+    const [contextMenuDirOnly, setContextMenuDirOnly] = useState(false);
 
     const uploadFilesEndpoint = "http://localhost:8080/files/uploadMultiple?"
     const getFilesListEndpoint = "http://localhost:8080/files/get?"
@@ -28,6 +32,7 @@ function Home(props) {
     const fileDownloadEndpoint = "http://localhost:8080/files/downloadMultiple?";
     const putToTrashbinEndpoint = "http://localhost:8080/trashbin/put?";
     const moveFileEndpoint = "http://localhost:8080/files/move?";
+    const createDirectoryEndpoint = "http://localhost:8080/directory/create?"
     const goToTrashbin = "http://"
 
     useEffect(() => {
@@ -53,6 +58,15 @@ function Home(props) {
             loadFiles();
         else
             openFolder(null, currentDirectory);
+    }
+
+    const updateTree = () => {
+        loadTreeViewFiles();
+    }
+
+    const updatePage = () => {
+        updateTable();
+        updateTree();
     }
 
     const renderTreeItems = (nodes, onlyDirectories = false) => {
@@ -153,9 +167,12 @@ function Home(props) {
         setTreeViewFiles(result.data);
     }
 
-    const loadFilesFromFolder = async (path, callback) => {
-        const result = await axios.get(getFilesListEndpoint + "userId=" + userId + "&directory=" + path);
-        callback(result.data);
+    const createFolder = async (name) => {
+        await axios.post(createDirectoryEndpoint 
+            + "userId=" + userId
+            + "&directoryName=" + name
+            + "&path=" + currentDirectory);
+        updatePage();
     }
 
     const openFolder = async (name, path) => {
@@ -202,7 +219,7 @@ function Home(props) {
         }
         
         await axios.post(url, formData, config)
-            .then(() => { updateTable(); })
+            .then(() => { updatePage(); })
     }
 
     // TODO: Implement proper singular and multiple file download
@@ -225,12 +242,16 @@ function Home(props) {
             .then(downloaded => resolveDownload("new.zip", downloaded))
     }
 
+    // Перемещение загруженного файла в файловую
+    // систему компьютера
     const resolveDownload = (name, file) => {
         let filename = decodeURI(name);
         const url = window.URL.createObjectURL(new Blob([file.data]));
         const link = document.createElement('a');
+
         link.href = url;
         link.setAttribute('download', filename);
+        
         document.body.appendChild(link);
         link.click();
         window.URL.revokeObjectURL(url);
@@ -247,7 +268,7 @@ function Home(props) {
             + "&fileIds=" + file.id);
 
         alert("Файлы успешно перемещены");
-        updateTable();
+        updatePage();
     }
 
     const deleteSelectedFiles = async () => {
@@ -361,6 +382,30 @@ function Home(props) {
         deleteSelectedFiles();
     }
 
+    const onContextMenu = (e) => {
+        e.preventDefault();
+        setContextMenuDirOnly(false);
+        setContextMenu(
+            contextMenu === null
+                ? {
+                    mouseX: e.clientX + 2,
+                    mouseY: e.clientY - 6,
+                }
+                : null,
+        );
+
+
+        const tr = e.target.closest("tr");
+        selectRow(tr);
+    }
+
+    const onCloseContextMenu = () => {
+        setContextMenu(null);
+        setContextMenuDirOnly(false);
+        if (selectedRow != null)
+            selectRow(selectedRow);
+    }
+
     return (
         <div style={{display: 'flex', flexDirection: 'row'}}>
             <nav>
@@ -401,7 +446,10 @@ function Home(props) {
                     <tbody>
                         {
                             files.map((file, index) => (
-                                <tr onClick={onRowClick} onDoubleClick={onRowDoubleClick}>
+                                <tr onClick={onRowClick} 
+                                    onDoubleClick={onRowDoubleClick}
+                                    onContextMenu={onContextMenu}
+                                    style={{ cursor: 'context-menu' }}>
                                     <td id="files-table-indexer" style={{ display: 'none' }} key={index}>{index + 1}</td>
                                     <td><input type="checkbox" onChange={onCheckboxChange} /></td>
                                     <td>{file.name}</td>
@@ -422,6 +470,23 @@ function Home(props) {
                     setMoveToDirDialogOpen(false);
                 }}
                 onClose={() => {setMoveToDirDialogOpen(false)}}/>
+            <CreateDirDialog
+                open={createDirDialogOpen}
+                onOk={(folderName) => {
+                    setCreateDirDialogOpen(false);
+                    createFolder(folderName);
+                }}
+                onClose={() => {
+                    setCreateDirDialogOpen(false);
+                }}/>
+            <ContextMenu 
+                contextMenu={contextMenu}
+                createDirOnly={contextMenuDirOnly}
+                onClose={onCloseContextMenu}
+                onCreateFolderClick={() => setCreateDirDialogOpen(true)}
+                onDownloadClick={onDownloadButtonClick}
+                onMoveClick={onMoveFileButtonClick}
+                onDeleteClick={onDeleteFileButtonClick}/>
         </div>
     );
 }
