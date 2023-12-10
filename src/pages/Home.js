@@ -176,6 +176,8 @@ function Home(props) {
         const result = await axios.get(getByUserIdEndpoint + "userId=" + userId);
         setFiles(result.data);
         setCurrentDirectory("");
+
+        console.log(result.data);
     }
 
     // Загрузка отдельного списка файлов для дерева навигации
@@ -557,7 +559,7 @@ function Home(props) {
                                     <td id="files-table-indexer" style={{ display: 'none' }} key={index}>{index + 1}</td>
                                     <td><input type="checkbox" onChange={onCheckboxChange} /></td>
                                     <td>{file.name}</td>
-                                    <td>{file.type}</td>
+                                    <td>{file.typeTitle}</td>
                                     <td>{file.size}</td>
                                     <td>{file.dateCreated}</td>
                                 </tr>
