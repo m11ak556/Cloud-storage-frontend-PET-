@@ -10,7 +10,9 @@ import ChevronRightIcon from '@mui/icons-material/ChevronRight';
 import MoveToDirDialog from "./components/MoveToDirDialog";
 import SelectFolderDialog from "./components/SelectFolderDialog";
 
-function Home() {
+function Home(props) {
+    const {userId} = props;
+
     const [files, setFiles] = useState([]);
     const [treeViewFiles, setTreeViewFiles] = useState([]);
     const [breadcrumbs, setBreadcrumbs] = useState([]);
@@ -18,9 +20,6 @@ function Home() {
     const [currentDirectory, setCurrentDirectory] = useState("");
     const [moveToDirDialogOpen, setMoveToDirDialogOpen] = useState(false);
     const [selectFolderDialogOpen, setSelectFolderDialogOpen] = useState(false);
-
-    const userId = 1;
-    const workingDir = "Trisha";
 
     const uploadFilesEndpoint = "http://localhost:8080/files/uploadMultiple?"
     const getFilesListEndpoint = "http://localhost:8080/files/get?"

@@ -54,7 +54,7 @@ export default function Registration(props) {
             </Stack>
             <Box>
                 <Button onClick={onBtnSendClick}>Отправить</Button>
-                <Button onClick={onBtnCancelClick}>Отмена</Button>
+                <Button href="/" onClick={onBtnCancelClick}>Отмена</Button>
             </Box>
         </Stack>
     );
