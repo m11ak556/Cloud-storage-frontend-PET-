@@ -21,7 +21,8 @@ export default function Registration(props) {
             password: password
         }
 
-        await axios.post(createUserEndpoint, data);
+        await axios.post(createUserEndpoint, data)
+            .then(() => window.location.href = "/");
     }
 
     const onBtnCancelClick = (e) => {

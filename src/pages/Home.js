@@ -37,6 +37,7 @@ function Home(props) {
     const putToTrashbinEndpoint = "http://localhost:8080/trashbin/put?";
     const moveFileEndpoint = "http://localhost:8080/files/move?";
     const createDirectoryEndpoint = "http://localhost:8080/directory/create?";
+    const restoreFileEndpoint = "http://localhost:8080/trashbin/restore?";
     const destroyFileEndpoint = "http://localhost:8080/trashbin/destroy?";
 
     useEffect(() => {
@@ -314,7 +315,7 @@ function Home(props) {
             + "&filePath=" + file.path
             + "&userId=" + userId);
 
-        loadFilesFromWorkDir();
+        updatePage();
     }
 
     const destroySelectedFiles = async () => {
@@ -330,6 +331,21 @@ function Home(props) {
             + "userId=" + userId
             + "&fileId=" + file.id);
             
+        loadFilesFromTrashbin();
+    }
+
+    const restoreSelectedFiles = async () => {
+        if (selectedRow == null)
+        {
+            alert("Выберите файл, который хотите восстановить");
+            return;
+        }
+
+        const rowIndex = getRowIndex(selectedRow);
+        const file = files[rowIndex];
+        await axios.put(restoreFileEndpoint
+            + "userId=" + userId
+            + "&fileId=" + file.id);
         loadFilesFromTrashbin();
     }
 
@@ -442,6 +458,10 @@ function Home(props) {
             updateTable();
     }
 
+    const onRestoreButtonClick = (e) => {
+        restoreSelectedFiles();
+    }
+
     const onDestroyButtonClick = (e) => {
         destroySelectedFiles();
     }
@@ -506,6 +526,7 @@ function Home(props) {
                 {
                     isInTrashbin 
                         ? <TrashbinToolbar
+                                onRestoreClick={onRestoreButtonClick}
                                 onDestroyClick={onDestroyButtonClick}
                                 style={{marginBottom: "20px"}}/>
                         : <StorageToolbar
