@@ -552,7 +552,9 @@ function Home(props) {
                 <h1 style={{
                     display: isInTrashbin ? "block" : "none",
                     marginBottom: "30px",
-                    marginTop: "50px"
+                    marginTop: "50px",
+                    fontSize: "x-large",
+                    padding: "0.2em 0.3em"
                 }}>Корзина</h1>
 
                 <Breadcrumbs 
