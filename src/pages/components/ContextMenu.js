@@ -2,6 +2,8 @@ import * as React from 'react';
 import Menu from '@mui/material/Menu';
 import MenuItem from '@mui/material/MenuItem';
 import Typography from '@mui/material/Typography';
+import { ListItemIcon, ListItemText } from '@mui/material';
+import { CreateNewFolder, Download, DriveFileMove, RemoveCircle } from '@mui/icons-material';
 
 export default function ContextMenu(props) {
 
@@ -44,10 +46,22 @@ export default function ContextMenu(props) {
                     : undefined
             }
         >
-            <MenuItem onClick={onCreateFolderItemClick}>Создать папку</MenuItem>
-            <MenuItem disabled={createDirOnly} onClick={onDownloadItemClick}>Скачать</MenuItem>
-            <MenuItem disabled={createDirOnly} onClick={onMoveItemClick}>Переместить</MenuItem>
-            <MenuItem disabled={createDirOnly} onClick={onDelteItemClick}>Удалить</MenuItem>
+            <MenuItem onClick={onCreateFolderItemClick}>
+                <ListItemIcon><CreateNewFolder/></ListItemIcon>
+                <ListItemText>Создать папку</ListItemText>
+            </MenuItem>
+            <MenuItem disabled={createDirOnly} onClick={onDownloadItemClick}>
+                <ListItemIcon><Download/></ListItemIcon>
+                <ListItemText>Скачать</ListItemText>
+            </MenuItem>
+            <MenuItem disabled={createDirOnly} onClick={onMoveItemClick}>
+                <ListItemIcon><DriveFileMove/></ListItemIcon>
+                <ListItemText>Переместить</ListItemText>
+            </MenuItem>
+            <MenuItem disabled={createDirOnly} onClick={onDelteItemClick}>
+                <ListItemIcon><RemoveCircle/></ListItemIcon>
+                <ListItemText>Удалить</ListItemText>
+            </MenuItem>
         </Menu>
     );
 }
