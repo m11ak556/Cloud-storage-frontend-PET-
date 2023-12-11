@@ -17,7 +17,8 @@ import { format } from 'date-fns';
 import Button from "@mui/material/Button";
 import Box from "@mui/material/Box";
 import TrashbinButton from "./components/TrashbinButton";
-import { ArrowRight } from "@mui/icons-material";
+import { Archive, ArrowRight, AudioFile, CoPresent, Description, Image, HelpCenter, Notes, TableChart, VideoFile } from "@mui/icons-material";
+import { ar, ca } from "date-fns/locale";
 
 function Home(props) {
     const {userId} = props;
@@ -82,6 +83,22 @@ function Home(props) {
         updateTree();
     }
 
+    // Определяет иконку элемента дерева навигации 
+    // по типу файла
+    const treeItemIcon = (file) => {
+        switch (file.type) {
+            case "DOCUMENT": return <Description/>;
+            case "SPREADSHEET": return <TableChart/>;
+            case "PRESENTATION": return <CoPresent/>;
+            case "TEXT": return <Notes/>;
+            case "AUDIO": return <AudioFile/>;
+            case "VIDEO": return <VideoFile/>;
+            case "IMAGE": return <Image/>;
+            case "COMPRESSED": return <Archive/>;
+            case "OTHER": return <HelpCenter/>;
+        }
+    }
+
     // Отрисовка узлов дерева навигации
     //
     // Параметры:
@@ -91,7 +108,8 @@ function Home(props) {
         if (Array.isArray(nodes)) {
             return nodes.map((node) =>
                 <TreeItem key={node.id} nodeId={node.id} label={node.name}
-                    disabled={onlyDirectories && !node.isDirectory}>
+                    disabled={onlyDirectories && !node.isDirectory}
+                    endIcon={treeItemIcon(treeViewFiles[node.id])}>
                     {
                         // Если есть дочерние узлы...
                         Array.isArray(node.children)
@@ -104,7 +122,8 @@ function Home(props) {
         }
         else {
             return <TreeItem key={nodes.id} nodeId={nodes.id} label={nodes.name}
-                        disabled={onlyDirectories && !nodes.isDirectory}>
+                        disabled={onlyDirectories && !nodes.isDirectory}
+                        endIcon={treeItemIcon(treeViewFiles[nodes.id])}>
                         {
                         // Если есть дочерние узлы...
                             Array.isArray(nodes.children)
@@ -178,7 +197,14 @@ function Home(props) {
 
     // Загрузка файлов из рабочей папки пользователя
     const loadFilesFromWorkDir = async () => {
-        const result = await axios.get(getByUserIdEndpoint + "userId=" + userId);
+        let result;
+
+        try {
+            result = await axios.get(getByUserIdEndpoint + "userId=" + userId);
+        } catch {
+            alert("Не удалось загрузить список файлов");
+            return;
+        }
         setFiles(result.data);
         setCurrentDirectory("");
 
@@ -187,30 +213,56 @@ function Home(props) {
 
     // Загрузка отдельного списка файлов для дерева навигации
     const loadTreeViewFiles = async () => {
-        const result = await axios.get(getAllFilesListEndpoint + "userId=" + userId);
+        let result;
+        try {
+            result = await axios.get(getAllFilesListEndpoint + "userId=" + userId);
+        } catch {
+            alert("Не удалось загрузить файлы для дерева навигации");
+            return;
+        }
         setTreeViewFiles(result.data);
     }
 
     // Загрузка файлов из корзины для данного пользователя
     const loadFilesFromTrashbin = async () => {
-        const result = await axios.get(getFilesFromTrashbinEndpoint + "userId=" + userId);
+        let result;
+        try { 
+            result = await axios.get(getFilesFromTrashbinEndpoint + "userId=" + userId);
+        } catch {
+            alert("Не удалось обновить корзину");
+            return;
+        }
         if (result.data != "")
             setFiles(result.data);
         else
             setFiles([]);
     }
 
-    const createFolder = async (name) => {
-        await axios.post(createDirectoryEndpoint 
-            + "userId=" + userId
-            + "&directoryName=" + name
-            + "&path=" + currentDirectory);
+    const createFolder = async (name) => { 
+        try {
+            await axios.post(createDirectoryEndpoint
+                + "userId=" + userId
+                + "&directoryName=" + name
+                + "&path=" + currentDirectory);
+        } catch {
+            alert("Не удалось создать папку");
+            return;
+        }
+
         updatePage();
     }
 
     // Загрузка файлов из указанной папки
     const openFolder = async (name, path) => {
-        const result = await axios.get(getFilesListEndpoint + "userId=" + userId + "&directory=" + path);
+        let result;
+
+        try {
+            result = await axios.get(getFilesListEndpoint + "userId=" + userId + "&directory=" + path);
+        } catch {
+            alert("Не удалось открыть папку");
+            return;
+        }
+
         setFiles(result.data);
         if (name != null) {
             addBreadcrumb(name, path)
@@ -255,8 +307,15 @@ function Home(props) {
             }
         }
         
-        await axios.post(url, formData, config)
-            .then(() => { updatePage(); })
+        try {
+            await axios.post(url, formData, config);
+        } catch {
+            alert("Не удалось загрузить файлы в хранилище");
+            return;
+        }
+
+        alert("Файлы успешно загружены в хранилище!");
+        updatePage();
     }
 
     // TODO: Implement proper singular and multiple file download
@@ -270,13 +329,21 @@ function Home(props) {
         const rowIndex = getRowIndex(selectedRow);
         const file = files[rowIndex];
         const fileDownloadPath = getFullFilePath(file);
-        const downloaded = await axios.get(fileDownloadEndpoint 
-            + "filePaths=" + fileDownloadPath
-            + "&userId=" + userId, 
-            {
-                responseType: 'blob'
-            })
-            .then(downloaded => resolveDownload("new.zip", downloaded))
+
+        try {
+            const downloaded = await axios.get(fileDownloadEndpoint
+                + "filePaths=" + fileDownloadPath
+                + "&userId=" + userId,
+                {
+                    responseType: 'blob'
+                })
+                .then(downloaded => resolveDownload("new.zip", downloaded))
+        } catch {
+            alert("Не удалось скачать файлы");
+            return;
+        }
+
+        alert("Файлы успешно скачаны!");
     }
 
     // Перемещение загруженного файла в файловую
@@ -299,10 +366,15 @@ function Home(props) {
         const rowIndex = getRowIndex(selectedRow);
         const file = files[rowIndex];
 
-        await axios.put(moveFileEndpoint 
-            + "userId=" + userId
-            + "&destination=" + selectedPath
-            + "&fileIds=" + file.id);
+        try {
+            await axios.put(moveFileEndpoint
+                + "userId=" + userId
+                + "&destination=" + selectedPath
+                + "&fileIds=" + file.id);
+        } catch {
+            alert("Не удалось переместить файл");
+            return;
+        }
 
         alert("Файлы успешно перемещены");
         updatePage();
@@ -332,12 +404,21 @@ function Home(props) {
             return;
         }
 
+        if (!window.confirm("Вы действительно хотите удалить файлы безвозвратно?"))
+            return;
+
         const rowIndex = getRowIndex(selectedRow);
         const file = files[rowIndex];
+        try {
         await axios.delete(destroyFileEndpoint
             + "userId=" + userId
             + "&fileId=" + file.id);
+        } catch {
+            alert("Не удалось уничтожить файл");
+            return;
+        }
             
+        alert("Файлы успешно уничтожены!");
         loadFilesFromTrashbin();
     }
 
@@ -350,9 +431,16 @@ function Home(props) {
 
         const rowIndex = getRowIndex(selectedRow);
         const file = files[rowIndex];
-        await axios.put(restoreFileEndpoint
-            + "userId=" + userId
-            + "&fileId=" + file.id);
+        try {
+            await axios.put(restoreFileEndpoint
+                + "userId=" + userId
+                + "&fileId=" + file.id);
+        } catch {
+            alert("Не удалось восстановить файл");
+            return;
+        }
+
+        alert("Файлы успешно восстановлены!");
         loadFilesFromTrashbin();
     }
 
@@ -528,8 +616,8 @@ function Home(props) {
                 marginBottom: "27px"}}>
             <nav style={{
                     minWidth: "240px", 
-                    width: "20%", 
-                    maxWidth: "390px", 
+                    width: "25%", 
+                    maxWidth: "490px", 
                     borderRight: "solid 2px #dedede", 
                     overflow: "scroll"}}>
                 <h1 style={{textAlign: "center", padding: "30px 20px"}}>Хранилище</h1>

@@ -13,6 +13,8 @@ export default function Registration(props) {
     const [repeatPassword, setRepeatPassword] = React.useState("");
 
     const createUserEndpoint = "http://localhost:8080/user/create"
+    const emailRegex =
+        /^(([^<>()[\]\.,;:\s@\"]+(\.[^<>()[\]\.,;:\s@\"]+)*)|(\".+\"))@(([^<>()[\]\.,;:\s@\"]+\.)+[^<>()[\]\.,;:\s@\"]{2,})$/i;
 
     const registerUser = async () => {
         const data = {
@@ -21,8 +23,52 @@ export default function Registration(props) {
             password: password
         }
 
-        await axios.post(createUserEndpoint, data)
-            .then(() => window.location.href = "/");
+        try {
+            await axios.post(createUserEndpoint, data)
+                .then(() => window.location.href = "/");
+        } catch {
+            alert("Не удалось завершить регистрацию");
+        }
+    }
+
+    const loginValid = () => {
+        if (login == "") {
+            alert("Пожалуйста, заполните логин");
+            return false
+        }
+
+        return true;
+    }
+
+    const emailValid = () => {
+        if (email == "") {
+            alert("Пожалуйста, укажите почту");
+            return false;
+        }
+
+        if (!email.match(emailRegex)) {
+            alert("Указана некорректная почта");
+            return false;
+        }
+
+        return true;
+    }
+
+    const passwordValid = () => {
+        if (password == "") {
+            alert("Пароль не может быть пустым");
+            return false;
+        }
+        if (repeatPassword == "") {
+            alert("Пожалуйста, повторите пароль");
+            return false;
+        }
+        if (password != repeatPassword) {
+            alert("Пароль должны совпадать")
+            return false;
+        }
+
+        return true;
     }
 
     const onBtnCancelClick = (e) => {
@@ -30,6 +76,10 @@ export default function Registration(props) {
     }
 
     const onBtnSendClick = (e) => {
+        if (!loginValid()) return;
+        if (!passwordValid()) return;
+        if (!emailValid()) return;
+
         registerUser();
     }
 

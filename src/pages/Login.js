@@ -15,9 +15,15 @@ export default function Login() {
     const loginEndpoint = "http://localhost:8080/auth/login?"
 
     const loginUser = async () => {
-        const result = await axios.get(loginEndpoint
-            + "login=" + login
-            + "&password=" + password);
+        let result;
+        try {
+            result = await axios.get(loginEndpoint
+                + "login=" + login
+                + "&password=" + password);
+        } catch {
+            alert("Не удалось выполнить вход");
+            return;
+        }
 
         // Создание новой страницы для перехода.
         // Ей мы передаем id пользователя, чтобы она смогла
@@ -36,7 +42,28 @@ export default function Login() {
         );
     }
 
+    const loginValid = () => {
+        if (login == "") {
+            alert("Пожалуйста, введите логин");
+            return false;
+        }
+
+        return true;
+    }
+
+    const passwordValid = () => {
+        if (password == "") {
+            alert("Пожалуйста, введите пароль");
+            return false;
+        }
+
+        return true;
+    }
+
     const onBtnLoginClick = (e) => {
+        if (!loginValid()) return;
+        if (!passwordValid()) return;
+
         loginUser();
     }
 
