@@ -19,6 +19,7 @@ import Box from "@mui/material/Box";
 import TrashbinButton from "./components/TrashbinButton";
 import { Archive, ArrowRight, AudioFile, CoPresent, Description, Image, HelpCenter, Notes, TableChart, VideoFile } from "@mui/icons-material";
 import { ar, ca } from "date-fns/locale";
+import StorageButton from "./components/StorageButton";
 
 function Home(props) {
     const {userId} = props;
@@ -631,7 +632,11 @@ function Home(props) {
                     </TreeView>
 
                     <Box alignSelf={"center"}>
-                        <TrashbinButton onClick={onTrashbinButtonClick}/>
+                        {
+                            !isInTrashbin
+                            ? <TrashbinButton onClick={onTrashbinButtonClick}/>
+                            : <StorageButton onClick={onTrashbinButtonClick}/>
+                        }
                     </Box>
                 </Stack>
 
