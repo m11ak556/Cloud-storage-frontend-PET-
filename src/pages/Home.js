@@ -16,6 +16,8 @@ import TrashbinToolbar from "./components/TrashbinToolbar";
 import { format } from 'date-fns';
 import Button from "@mui/material/Button";
 import Box from "@mui/material/Box";
+import TrashbinButton from "./components/TrashbinButton";
+import { ArrowRight } from "@mui/icons-material";
 
 function Home(props) {
     const {userId} = props;
@@ -53,7 +55,7 @@ function Home(props) {
     const addBreadcrumb = (name, link) => {
         const newId = breadcrumbs.length + 1;
         breadcrumbs.push(
-            <Link id={newId} path={link} underline="hover" onClick={onBreadcrumbLinkClick}>{name}</Link>
+            <Link id={newId} path={link} className="breadcrumb-link" onClick={onBreadcrumbLinkClick}>{name}</Link>
         )
     }
 
@@ -517,13 +519,19 @@ function Home(props) {
     }
 
     return (
-        <div style={{
-                display: 'flex', 
-                flexDirection: 'row', 
+        <Stack 
+            direction={"row"}
+            style={{
                 height: "94%", 
+                width: "100%",
                 marginTop: "27px",
                 marginBottom: "27px"}}>
-            <nav style={{width: "34%", borderRight: "solid 2px #dedede"}}>
+            <nav style={{
+                    minWidth: "240px", 
+                    width: "20%", 
+                    maxWidth: "390px", 
+                    borderRight: "solid 2px #dedede", 
+                    overflow: "scroll"}}>
                 <h1 style={{textAlign: "center", padding: "30px 20px"}}>Хранилище</h1>
 
                 <Stack style={{height: "100%"}}>
@@ -535,12 +543,12 @@ function Home(props) {
                     </TreeView>
 
                     <Box alignSelf={"center"}>
-                        <Button onClick={onTrashbinButtonClick}>Корзина</Button>
+                        <TrashbinButton onClick={onTrashbinButtonClick}/>
                     </Box>
                 </Stack>
 
             </nav>
-            <div style={{marginLeft: "37px"}}>
+            <div style={{margin: "0 37px", width: "100%"}}>
                 <h1 style={{
                     display: isInTrashbin ? "block" : "none",
                     marginBottom: "30px",
@@ -548,12 +556,12 @@ function Home(props) {
                 }}>Корзина</h1>
 
                 <Breadcrumbs 
-                    separator="›" 
+                    separator={<ArrowRight/>}
                     style={{
                         marginBottom: "30px", 
                         marginTop: "50px",
                         display: isInTrashbin ? "none" : "block" }}>
-                    <Link id="0" path="/" underline="hover" onClick={onBreadcrumbLinkClick}>Мое хранилище</Link>
+                    <Link id="0" path="/" className="breadcrumb-link" onClick={onBreadcrumbLinkClick}>Мое хранилище</Link>
                     {breadcrumbs}
                 </Breadcrumbs>
 
@@ -626,7 +634,7 @@ function Home(props) {
                 onDownloadClick={onDownloadButtonClick}
                 onMoveClick={onMoveFileButtonClick}
                 onDeleteClick={onDeleteFileButtonClick}/>
-        </div>
+        </Stack>
     );
 }
 

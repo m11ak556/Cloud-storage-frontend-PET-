@@ -1,9 +1,25 @@
 html, body {
   height: 100%;
+  width: 100%;
 }
 
 #root {
   height: 100%;
+  width: 100%;
+}
+
+.breadcrumb-link {
+  text-decoration: none !important;
+  color: black !important;
+  font-size: x-large !important;
+  padding: 0.2em 0.3em;
+  transition: 0.2s;
+  border-radius: 10px;
+}
+
+.breadcrumb-link:hover {
+  cursor: pointer;
+  background: #ededed;
 }
 
 .App {

@@ -1,10 +1,20 @@
 import { Stack } from '@mui/material';
+import { styled } from '@mui/material/styles';
+import Button from '@mui/material/Button';
+import { Block, CloudUpload, Download, DriveFileMove, RemoveCircle } from '@mui/icons-material/';
 
 export default function StorageToolbar(props) {
 
     const {onUploadClick, onDownloadClick,
            onMoveFileClick, onDeleteFileClick,
            style} = props;
+
+    const OutlinedButton = styled(Button)
+        ({
+            color: "#555555",
+            borderWidth: "2px",
+            borderColor: "#dedede"
+        });
 
     const onUploadButtonClick = (e) => {
         onUploadClick();
@@ -24,10 +34,22 @@ export default function StorageToolbar(props) {
 
     return (
         <Stack direction={"row"} spacing={1} style={style}>
-            <button className="btn btn-primary" onClick={onUploadButtonClick}>Загрузить файл</button>
-            <button className="btn btn-primary" onClick={onDownloadButtonClick}>Скачать файл</button>
-            <button className="btn btn-primary" onClick={onMoveFileButtonClick}>Переместить</button>
-            <button className="btn btn-danger" onClick={onDeleteFileButtonClick}>Удалить</button>
+            <OutlinedButton 
+                startIcon={<CloudUpload/>}
+                variant="outlined"
+                onClick={onUploadButtonClick}>Загрузить файл</OutlinedButton>
+            <OutlinedButton 
+                startIcon={<Download/>}
+                variant="outlined"
+                onClick={onDownloadButtonClick}>Скачать файл</OutlinedButton>
+            <OutlinedButton 
+                variant="outlined"
+                startIcon={<DriveFileMove/>}
+                onClick={onMoveFileButtonClick}>Переместить</OutlinedButton>
+            <OutlinedButton 
+                variant="outlined"
+                startIcon={<RemoveCircle/>}
+                onClick={onDeleteFileButtonClick}>Удалить</OutlinedButton>
         </Stack>
     );
 }
