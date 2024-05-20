@@ -1,3 +1,3 @@
 # Cloud storage frontend [PET project]
 
-It's quite empty over here...
+Frontend for https://github.com/m11ak556/Cloud-storage-backend-PET-
